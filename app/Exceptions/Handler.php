@@ -53,8 +53,16 @@ class Handler extends ExceptionHandler
                 return abort(403);
             }
         });
-        $this->renderable(function (PassportAuthenticationException $e) use ($request) {
-            return response()->redirectTo(sprintf("%s/login.php?returnto=%s", $request->getSchemeAndHttpHost(), urlencode($request->fullUrl())));
+        $this->renderable(function (AuthenticationException $e) use ($request) {
+            if ($request->is('oauth/user-info') || $request->expectsJson() || $request->ajax()) {
+                $data = $request->is('oauth/user-info') || $e instanceof PassportAuthenticationException
+                    ? $request->all()
+                    : ['guards' => $e->guards()];
+                return response()->json(fail($e->getMessage() ?: 'Unauthenticated.', $data), 401);
+            }
+            if ($e instanceof PassportAuthenticationException) {
+                return response()->redirectTo(sprintf("%s/login.php?returnto=%s", $request->getSchemeAndHttpHost(), urlencode($request->fullUrl())));
+            }
         });
 
         //Other Only handle in json request
@@ -64,10 +72,6 @@ class Handler extends ExceptionHandler
             });
             return;
         }
-
-        $this->renderable(function (AuthenticationException $e) {
-            return response()->json(fail($e->getMessage(), ['guards' => $e->guards()]), 401);
-        });
 
         $this->renderable(function (UnauthorizedException $e) {
             return response()->json(fail($e->getMessage(), request()->all()), 403);
