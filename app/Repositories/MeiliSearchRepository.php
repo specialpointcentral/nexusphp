@@ -377,7 +377,10 @@ class MeiliSearchRepository extends BaseRepository
             do_log("spstate from user setting");
         }
         if ($spState > 0) {
-            $filters[] = "sp_state = $spState";
+            $promotionFilter = \App\Support\TorrentPromotionFilter::fromSettings()->toMeiliSearch((int)$spState);
+            if ($promotionFilter !== '') {
+                $filters[] = $promotionFilter;
+            }
             do_log("sp_state = $spState through spstate: $spState");
         }
 

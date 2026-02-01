@@ -232,97 +232,12 @@ if (!in_array($special_state,array(0,1,2,3,4,5,6,7)))
 	$special_state = 0;
 	write_log("User " . $CURUSER["username"] . "," . $CURUSER["ip"] . " is hacking spstate field in " . $_SERVER['SCRIPT_NAME'], 'mod');
 }
-if($special_state == 0)	//all
-{
-	$addparam .= "spstate=0&";
-}
-elseif ($special_state == 1)	//normal
-{
-	$addparam .= "spstate=1&";
-
-	$wherea[] = "sp_state = 1";
-
-	if(get_global_sp_state() == 1)
-	{
-		$wherea[] = "sp_state = 1";
-	}
-}
-elseif ($special_state == 2)	//free
-{
-	$addparam .= "spstate=2&";
-
-	if(get_global_sp_state() == 1)
-	{
-		$wherea[] = "sp_state = 2";
-	}
-	else if(get_global_sp_state() == 2)
-	{
-		;
-	}
-}
-elseif ($special_state == 3)	//2x up
-{
-	$addparam .= "spstate=3&";
-	if(get_global_sp_state() == 1)	//only sp state
-	{
-		$wherea[] = "sp_state = 3";
-	}
-	else if(get_global_sp_state() == 3)	//all
-	{
-		;
-	}
-}
-elseif ($special_state == 4)	//2x up and free
-{
-	$addparam .= "spstate=4&";
-
-	if(get_global_sp_state() == 1)	//only sp state
-	{
-		$wherea[] = "sp_state = 4";
-	}
-	else if(get_global_sp_state() == 4)	//all
-	{
-		;
-	}
-}
-elseif ($special_state == 5)	//half down
-{
-	$addparam .= "spstate=5&";
-
-	if(get_global_sp_state() == 1)	//only sp state
-	{
-		$wherea[] = "sp_state = 5";
-	}
-	else if(get_global_sp_state() == 5)	//all
-	{
-		;
-	}
-}
-elseif ($special_state == 6)	//half down
-{
-	$addparam .= "spstate=6&";
-
-	if(get_global_sp_state() == 1)	//only sp state
-	{
-		$wherea[] = "sp_state = 6";
-	}
-	else if(get_global_sp_state() == 6)	//all
-	{
-		;
-	}
-}
-elseif ($special_state == 7)	//30% down
-{
-	$addparam .= "spstate=7&";
-
-	if(get_global_sp_state() == 1)	//only sp state
-	{
-		$wherea[] = "sp_state = 7";
-	}
-	else if(get_global_sp_state() == 7)	//all
-	{
-		;
-	}
+$addparam .= "spstate=$special_state&";
+if ($special_state > 0) {
+    $promotionFilter = \App\Support\TorrentPromotionFilter::fromSettings()->toSql($special_state);
+    if ($promotionFilter !== '') {
+        $wherea[] = $promotionFilter;
+    }
 }
 
 $category_get = intval($_GET["cat"] ?? 0);

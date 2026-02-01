@@ -517,7 +517,7 @@ class SearchRepository extends BaseRepository
             do_log("maybe get must for spstate from user setting");
         }
         if ($spState > 0) {
-            $must[] = ['match' => ['sp_state' => $spState]];
+            $must[] = \App\Support\TorrentPromotionFilter::fromSettings()->toElasticsearch((int)$spState);
             do_log("get must for sp_state = $spState through spstate: $spState");
         }
 
