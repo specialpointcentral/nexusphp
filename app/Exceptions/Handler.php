@@ -56,7 +56,7 @@ class Handler extends ExceptionHandler
         $this->renderable(function (AuthenticationException $e) use ($request) {
             if ($request->is('oauth/user-info') || $request->expectsJson() || $request->ajax()) {
                 $data = $request->is('oauth/user-info') || $e instanceof PassportAuthenticationException
-                    ? $request->all()
+                    ? ['path' => $request->path()]
                     : ['guards' => $e->guards()];
                 return response()->json(fail($e->getMessage() ?: 'Unauthenticated.', $data), 401);
             }

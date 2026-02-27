@@ -52,6 +52,7 @@ class AuthenticationResponseTest extends TestCase
             if ($status === 401) {
                 self::assertStringContainsString('application/json', $response->headers->get('Content-Type'));
                 self::assertSame(-1, json_decode($response->getContent(), true)['ret']);
+                self::assertStringNotContainsString('must-not-be-returned', $response->getContent());
                 self::assertFalse($response->headers->has('Location'));
             } else {
                 self::assertStringContainsString('/login.php', $response->headers->get('Location'));
