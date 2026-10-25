@@ -93,10 +93,7 @@ class AuthenticateRepository extends BaseRepository
         $signatureKey = config('nexus.ammds_secret');
         $serverSignature = hash_hmac('sha256', $dataToSign, $signatureKey);
         if (!hash_equals($serverSignature, $request->signature)) {
-            do_log(sprintf(
-                "uid: %s, passkey_hash: %s, timestamp: %s, nonce: %s, dataToSign: %s, signatureKey: %s, serverSignature: %s, requestSignature: %s, !hash_equals",
-                $user->id, $passkeyHash, $request->timestamp, $request->nonce, $dataToSign, $signatureKey, $serverSignature, $request->signature
-            ));
+            do_log(sprintf('AMMDS signature mismatch: uid=%s', $user->id), 'warning');
             throw new \InvalidArgumentException("Invalid signature.");
         }
         return $user;

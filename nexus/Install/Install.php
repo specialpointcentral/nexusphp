@@ -117,6 +117,7 @@ class Install
 
     public function doLog($log)
     {
+        $log = \App\Support\SensitiveData::redactText($log);
         $log = sprintf('[%s] [%s] %s%s', date('Y-m-d H:i:s'), $this->currentStep, $log, PHP_EOL);
         file_put_contents($this->getLogFile(), $log, FILE_APPEND);
     }

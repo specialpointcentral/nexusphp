@@ -36,6 +36,7 @@ return [
 
     'channels' => [
         'stack' => [
+            'tap' => [\App\Logging\RedactSensitiveData::class],
             'driver' => 'stack',
             'channels' => ['single'],
             'ignore_exceptions' => false,
@@ -60,6 +61,7 @@ return [
         ],
 
         'slack' => [
+            'tap' => [\App\Logging\RedactSensitiveData::class],
             'driver' => 'slack',
             'url' => env('LOG_SLACK_WEBHOOK_URL'),
             'username' => 'Laravel Log',
@@ -68,6 +70,7 @@ return [
         ],
 
         'papertrail' => [
+            'tap' => [\App\Logging\RedactSensitiveData::class],
             'driver' => 'monolog',
             'level' => env('LOG_LEVEL', 'debug'),
             'handler' => SyslogUdpHandler::class,
@@ -90,11 +93,13 @@ return [
         ],
 
         'syslog' => [
+            'tap' => [\App\Logging\RedactSensitiveData::class],
             'driver' => 'syslog',
             'level' => env('LOG_LEVEL', 'debug'),
         ],
 
         'errorlog' => [
+            'tap' => [\App\Logging\RedactSensitiveData::class],
             'driver' => 'errorlog',
             'level' => env('LOG_LEVEL', 'debug'),
         ],

@@ -198,19 +198,28 @@ function do_log($log, $level = 'info', $echo = false)
         $fd = fopen(sys_get_temp_dir() . '/nexus.log', 'a');
 	}
 	$uid = 0;
+    $user = null;
     if (IN_NEXUS) {
         global $CURUSER;
         $user = $CURUSER;
         $uid = $user['id'] ?? 0;
-        $passkey = $user['passkey'] ?? $_REQUEST['passkey'] ?? $_REQUEST['authkey'] ?? '';
     } else {
         try {
             $user = \Illuminate\Support\Facades\Auth::user();
             $uid = $user->id ?? 0;
-            $passkey = $user->passkey ?? request('passkey', request('authkey', ''));
         } catch (\Throwable $exception) {
-            $passkey = "!IN_NEXUS:" . $exception->getMessage();
+            $uid = 0;
         }
+    }
+    $knownSecrets = [];
+    $userAttributes = is_array($user) ? $user : ($user?->getAttributes() ?? []);
+    foreach ([$userAttributes, $_REQUEST, $_GET, $_POST, $_COOKIE] as $source) {
+        $credentials = array_filter($source, fn ($key) => \App\Support\SensitiveData::isSensitiveKey((string) $key), ARRAY_FILTER_USE_KEY);
+        $knownSecrets = array_merge($knownSecrets, \App\Support\SensitiveData::collectSecrets($credentials));
+    }
+    $log = \App\Support\SensitiveData::redact($log, $knownSecrets);
+    if (!is_string($log)) {
+        $log = json_encode($log, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
     }
     $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
     $content = sprintf(
@@ -220,7 +229,7 @@ function do_log($log, $level = 'info', $echo = false)
         nexus() ? nexus()->getLogSequence() : 0,
         sprintf('%.3f', microtime(true) - (nexus() ? nexus()->getStartTimestamp() : 0)),
         $uid,
-        $passkey,
+        \App\Support\SensitiveData::REDACTED,
         $env, strtoupper($level),
         $backtrace[0]['file'] ?? '',
         $backtrace[0]['line'] ?? '',

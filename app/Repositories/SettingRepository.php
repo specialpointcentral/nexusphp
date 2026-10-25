@@ -49,7 +49,7 @@ class SettingRepository extends BaseRepository
             $settingModel->getTable(), implode(', ', $values), NexusDB::upsertField(['name'], ['value'])
         );
         $result = DB::insert($sql);
-        do_log("sql: $sql, result: $result");
+        do_log(sprintf('Settings saved: count=%d, result=%s', count($values), $result ? 'success' : 'failure'));
         NexusDB::cache_del("nexus_settings_in_laravel");
         NexusDB::cache_del("nexus_settings_in_nexus");
         NexusDB::cache_del('setting_protected_forum');

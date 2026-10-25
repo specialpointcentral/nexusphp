@@ -7,6 +7,7 @@ class NexusFormatter
 {
     public function __invoke($logger)
     {
+        (new RedactSensitiveData())($logger);
         foreach ($logger->getHandlers() as $handler) {
             $handler->setFormatter($this->formatter());
         }

@@ -82,13 +82,13 @@ class OauthController extends Controller
         $response = Http::asForm()->post($provider->token_endpoint_url, $params);
         $tokenInfo = $response->json();
         if (empty($tokenInfo['access_token'])) {
-            do_log("Get tokenInfo with: " . json_encode($params) . " error: " . $response->body(), 'error');
+            do_log(sprintf('OAuth token exchange failed: provider=%s, HTTP=%d', $provider->id, $response->status()), 'error');
             throw new NexusException(nexus_trans('oauth.get_access_token_error', ['error' => $tokenInfo['error'] ?? '']));
         }
         //use token get user-info
         $response = Http::withToken($tokenInfo['access_token'])->get($provider->user_info_endpoint_url);
         $userInfo = $response->json();
-        do_log("userInfo: " . $response->body());
+        do_log(sprintf('OAuth user-info response: provider=%s, HTTP=%d', $provider->id, $response->status()));
         $homeUrl = getSchemeAndHttpHost() . "/index.php";
         $providerUserId = data_get($userInfo, $provider->id_claim);
         if (empty($providerUserId)) {

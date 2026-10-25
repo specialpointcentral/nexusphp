@@ -19,10 +19,7 @@ class IpLogRepository extends BaseRepository
             return;
         }
         $redis = NexusDB::redis();
-        if (is_null($uri)) {
-            $parsed_uri = parse_url($_SERVER['REQUEST_URI']);
-            $uri = $parsed_uri['path'];
-        }
+        $uri = self::safeEndpoint($uri ?? ($_SERVER['REQUEST_URI'] ?? ''));
         if (is_null($ipArr)) {
             $ipArr = [getip()];
         }
@@ -68,7 +65,7 @@ class IpLogRepository extends BaseRepository
                     $insert[] = [
                         'userid' => $userId,
                         'ip' => $ip,
-                        'uri' => $uri,
+                        'uri' => self::safeEndpoint($uri),
                         'access' => date("Y-m-d H:i:s"),
                         'count' => intval($value),
                     ];
@@ -82,6 +79,18 @@ class IpLogRepository extends BaseRepository
             do_log("handle key: $key done!");
         }
         do_log(sprintf("all done! cost time: %.3f sec.", microtime(true) - $beginTimestamp));
+    }
+
+    private static function safeEndpoint(string $uri): string
+    {
+        $path = parse_url($uri, PHP_URL_PATH);
+        // Preserve real legacy endpoint names, never dynamic path credentials.
+        // Apply on both sides of the buffer so older entries cannot leak on flush.
+        if (is_string($path) && preg_match('~^/[A-Za-z0-9_-]+[.]php$~D', $path)
+            && is_file(dirname(__DIR__, 2) . '/public' . $path)) {
+            return $path;
+        }
+        return '/[dynamic-route]';
     }
 
 }

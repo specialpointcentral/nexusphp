@@ -377,7 +377,7 @@ class ToolRepository extends BaseRepository
         $log = "[SEND_MAIL]";
         $factory = new EsmtpTransportFactory();
         $smtp = Setting::getFromDb('smtp');
-        do_log("$log, to: $to, subject: $subject, body: $body, smtp: " . json_encode($smtp));
+        do_log("$log, preparing message for delivery");
         $encryption = null;
         if (isset($smtp['encryption']) && in_array($smtp['encryption'], ['ssl', 'tls'])) {
             $encryption = $smtp['encryption'];
@@ -410,7 +410,7 @@ class ToolRepository extends BaseRepository
             $mailer->send($message);
             return true;
         } catch (\Throwable $e) {
-            do_log("$log, fail: " . $e->getMessage() . "\n" . $e->getTraceAsString(), 'error');
+            do_log("$log, failed, exception: " . get_class($e), 'error');
             if ($exception) {
                 throw $e;
             } else {

@@ -225,11 +225,9 @@ final class Nexus
 
     private function setRequestId()
     {
-        $requestId = $this->retrieveFromServer(['HTTP_X_REQUEST_ID', 'REQUEST_ID', 'Request-Id', 'request-id'], true);
-        if (empty($requestId)) {
-            $requestId = $this->generateRequestId();
-        }
-        $this->requestId = (string)$requestId;
+        // Log prefixes bypass message redaction. Never reflect an arbitrary client
+        // header here; retain a stable, server-generated ID for this request.
+        $this->requestId = $this->generateRequestId();
     }
 
     private function setScript()

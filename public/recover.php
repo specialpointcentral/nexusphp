@@ -47,7 +47,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST")
 	stderr($lang_recover['std_error'], $lang_recover['std_database_error']);
 
 	$hash = md5($sec . $email . $arr["passhash"] . $sec);
-    do_log("hash: $hash = md5(sec: $sec . email: $email . passhash: {$arr['passhash']} . sec: $sec)");
+    do_log(sprintf('Password recovery requested: uid=%d', $arr['id']));
 	$ip = getip();
 	$title = $SITENAME.$lang_recover['mail_title'];
     $mailOne = sprintf($lang_recover['mail_one'], $siteName);
@@ -72,7 +72,7 @@ elseif($_SERVER["REQUEST_METHOD"] == "GET" && $take_recover && isset($_GET["id"]
 	if (!$id)
 	httperr();
     if (!\Nexus\Database\NexusDB::cache_get("recover:$md5")) {
-        do_log("secret: $md5 is expired", "error");
+        do_log("Password recovery token expired: uid=$id", "error");
         httperr();
     }
 	$res = sql_query("SELECT username, email, passhash, editsecret FROM users WHERE id = " . sqlesc($id)) or sqlerr(__FILE__, __LINE__);
@@ -81,7 +81,7 @@ elseif($_SERVER["REQUEST_METHOD"] == "GET" && $take_recover && isset($_GET["id"]
 	$email = $arr["email"];
 	$sec = hash_pad($arr["editsecret"]);
 	if ($md5 != md5($sec . $email . $arr["passhash"] . $sec)) {
-        do_log("secret: $md5 != md5(sec: $sec . email: $email . passhash: {$arr['passhash']} . sec: $sec)","error");
+        do_log("Password recovery token mismatch: uid=$id", "error");
         httperr();
     }
 

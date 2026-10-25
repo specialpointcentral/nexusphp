@@ -25,6 +25,8 @@ $app = new Illuminate\Foundation\Application(
     $_ENV['APP_BASE_PATH'] ?? dirname(__DIR__)
 );
 
+$app->singleton('log', fn ($app) => new \App\Logging\LogManager($app));
+
 /*
 |--------------------------------------------------------------------------
 | Bind Important Interfaces

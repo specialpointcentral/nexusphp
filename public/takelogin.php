@@ -56,10 +56,10 @@ if ($useChallengeResponse) {
     if (empty($challenge)) {
         failedlogins("expired");
     }
-    $log .= ", useChallengeResponse, client response: " . $_POST['response'];
+    $log .= ", useChallengeResponse";
 } else {
     $passwordHash = hash('sha256', $row['secret'] . hash('sha256', $_POST['password']));
-    $log .= ", !useChallengeResponse, passwordHash: $passwordHash";
+    $log .= ", password authentication";
     if (empty($row['auth_key'])) {
         //先使用旧的验证方式验证
         if ($row["passhash"] != md5($row["secret"] . $_POST['password'] . $row["secret"])) {
@@ -73,10 +73,9 @@ if ($useChallengeResponse) {
     //后端自动生成挑战响应
     $challenge = mksecret();
     $_POST['response'] = hash_hmac('sha256', $passwordHash, $challenge);
-    $log .= ", server generate response: " . $_POST['response'];
+    $log .= ", server generated challenge response";
 }
 $expectedResponse = hash_hmac('sha256', $row['passhash'], $challenge);
-$log .= ", expectedResponse: $expectedResponse";
 if (!hash_equals($expectedResponse, $_POST["response"])) {
     do_log("$log, !hash_equals");
     login_failedlogins();

@@ -83,7 +83,7 @@ class MeiliSearchRepository extends BaseRepository
         if (is_null(self::$client)) {
             $config = nexus_config('nexus.meilisearch');
             $url = sprintf('%s://%s:%s', $config['scheme'], $config['host'], $config['port']);
-            do_log("get client with url: $url, master key: " . $config['master_key']);
+            do_log("Creating Meilisearch client");
             self::$client = new Client($url, $config['master_key']);
         }
         return self::$client;

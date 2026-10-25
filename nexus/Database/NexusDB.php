@@ -89,7 +89,7 @@ class NexusDB
             $this->autoConnect();
             return $this->driver->query($sql);
         } catch (\Exception $e) {
-            do_log(sprintf("%s [%s] %s", $e->getMessage(), $sql, $e->getTraceAsString()));
+            do_log(sprintf('Database query failed: exception=%s, code=%s', $e::class, $e->getCode()), 'error');
             throw new DatabaseException($e->getMessage(), $sql);
         }
 
