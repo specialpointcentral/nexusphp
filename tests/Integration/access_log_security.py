@@ -23,7 +23,7 @@ def main():
     root = Path(__file__).resolve().parents[2]
     config = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else root / '.docker/openresty/nginx.conf'
     name = 'nexus-log-test-' + uuid.uuid4().hex[:12]
-    markers = ['path-canary', 'query-canary', 'cookie-canary', 'referer-canary', 'header-canary', 'body-canary']
+    markers = ['path-canary', 'query-canary', 'cookie-canary', 'referer-canary', 'header-canary', 'body-canary', 'NEXUSMETHODCANARY']
     with tempfile.TemporaryDirectory(prefix='nexus-access-', dir=os.getenv('NEXUS_SECURITY_TMP')) as temporary:
         directory = Path(temporary)
         (directory / 'test.conf').write_text('''server {
@@ -60,6 +60,8 @@ def main():
             ]]);
             file_get_contents('http://127.0.0.1:8080/path-canary?auth_key=query-canary', false, $context);
             if (!str_contains($http_response_header[0], '204')) exit(1);
+            $context = stream_context_create(['http' => ['method' => 'NEXUSMETHODCANARY', 'ignore_errors' => true]]);
+            file_get_contents('http://127.0.0.1:8080/method-check', false, $context);
             '''
             run('docker', 'run', '--rm', '--network', 'container:' + name,
                 'php:8.2-cli-alpine', 'php', '-r', php)

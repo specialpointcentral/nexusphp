@@ -22,7 +22,8 @@ def free_port():
 
 def main():
     root = Path(__file__).resolve().parents[2]
-    markers = [f'nexus-{part}-canary' for part in ('path', 'query', 'cookie', 'referer', 'authorization', 'agent', 'body', 'requestid', 'exception', 'fake-source')]
+    markers = [f'nexus-{part}-canary' for part in ('path', 'query', 'cookie', 'referer', 'authorization', 'agent', 'body', 'requestid', 'exception', 'fake-source', 'method')]
+    markers[10] = 'NEXUSMETHODCANARY'
     # These paths work with Ubuntu's shipped rsyslog AppArmor profile.
     with tempfile.TemporaryDirectory(prefix='.nexus-test-', dir='/etc/rsyslog.d') as confdir, \
          tempfile.TemporaryDirectory(prefix='nexus-test-', dir='/var/spool/rsyslog') as spooldir, \
@@ -66,6 +67,9 @@ http {{
             response = client.getresponse()
             assert response.status == 502, 'The upstream-error path was not exercised'
             response.read(); client.close()
+            client = http.client.HTTPConnection('127.0.0.1', port, timeout=5)
+            client.request(markers[10], '/method-check')
+            client.getresponse().read(); client.close()
             # Native PHP error text may contain unlabelled secrets: allowlist metadata.
             payload = '<131>Oct 27 12:00:00 nexus_error: [error] 123#123: *123 PHP Fatal error: Uncaught RuntimeException: ' + markers[8] + ' in /var/www/hitpt.com/public/takelogin.php:17, request: GET /' + markers[0]
             with socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM) as sender:

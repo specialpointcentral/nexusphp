@@ -20,14 +20,27 @@ through an audited model must not record the replacement secret.
   timing, source address and generated request ID. It deliberately excludes URI,
   query string, request body, cookies, authorization and Referer. Passkey login
   URLs contain credentials in the path, so replacing `$request` with `$uri` is not
-  sufficient.
+  sufficient. Unknown HTTP methods are logged as `OTHER`, since even
+  the method token is client-controlled.
 
 For a native Nginx installation, install this format in the `http` context and
 select it in **every** server/location serving the site, including redirects and
 tracker endpoints. Check inherited and multiple access logs before reloading.
 
 ```nginx
-log_format nexus_safe '$remote_addr [$time_iso8601] "$request_method $server_protocol" '
+map $request_method $nexus_log_method {
+    default OTHER;
+    GET GET;
+    HEAD HEAD;
+    POST POST;
+    PUT PUT;
+    PATCH PATCH;
+    DELETE DELETE;
+    OPTIONS OPTIONS;
+    CONNECT CONNECT;
+    TRACE TRACE;
+}
+log_format nexus_safe '$remote_addr [$time_iso8601] "$nexus_log_method $server_protocol" '
                       '$status $body_bytes_sent "$request_id" $request_time';
 access_log /var/log/nginx/nexus-access.log nexus_safe;
 ```
