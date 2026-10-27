@@ -399,11 +399,32 @@ class Imdb
             return;
         }
         $lockKey = self::getFetchQueueLockKey($imdbId);
-        if (NexusDB::cache_get($lockKey)) {
+        $marked = false;
+        try {
+            if (NexusDB::cache_get($lockKey)) {
+                return;
+            }
+            NexusDB::cache_put($lockKey, 1, 600);
+            $marked = true;
+            if (IN_NEXUS) {
+                // Legacy pages bootstrap standalone components, not Laravel's Bus.
+                \Nexus\Nexus::dispatchQueueJob(new \App\Jobs\FetchImdbCacheJob(null, (string) $imdbId));
+            } else {
+                \App\Jobs\FetchImdbCacheJob::dispatch(null, (string) $imdbId);
+            }
+        } catch (\Throwable $exception) {
+            if ($marked) {
+                try {
+                    NexusDB::cache_del($lockKey);
+                } catch (\Throwable $cleanupException) {
+                    do_log('IMDb fetch marker cleanup failed: ' . get_class($cleanupException), 'error');
+                }
+            }
+            // Optional metadata must not interrupt the remainder of the page.
+            // Transport exception messages can contain connection credentials.
+            do_log('IMDb cache fetch could not be queued: ' . get_class($exception), 'error');
             return;
         }
-        NexusDB::cache_put($lockKey, 1, 600);
-        \App\Jobs\FetchImdbCacheJob::dispatch(null, (string) $imdbId);
         do_log("FetchImdbCacheJob dispatched for missing cache, imdb: $imdbId");
     }
 }
